@@ -56,11 +56,18 @@ class Job(object):
             # nobody makes a non-semantic change...
             return etree.tostring(xml)
 
-    def create(self, overwrite, dryrun):
+    def create(self, overwrite, dryrun, scope_name = None):
         # append autojobs-information
         info_el = etree.SubElement(self.xml, 'createdByJenkinsAutojobs')
-        info_el = etree.SubElement(info_el, 'ref')
-        info_el.text = xmlescape(self.branch)
+        
+        ref_el = etree.SubElement(info_el, 'ref')
+        ref_el.text = xmlescape(self.branch)
+
+        # scope_name is scope used for projects deleting.
+        # during deletion only projects with scope equal to template project will be deleted
+        if scope_name:
+            project_el = etree.SubElement(info_el, 'scopeName')
+            project_el.text = xmlescape(scope_name)
 
         # method='c14n' is only available in more recent versions of lxml
         self.xml = self.canonicalize(self.xml)

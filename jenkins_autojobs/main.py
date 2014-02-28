@@ -2,6 +2,7 @@
 
 import re
 import yaml
+import pdb
 
 from os.path import basename, abspath
 from sys import exit, argv
@@ -126,9 +127,19 @@ def cleanup(config, job_names, jenkins, verbose=True):
     print('\ncleaning up old jobs:')
 
     tag = '</createdByJenkinsAutojobs>'
-    managed_jobs = (job for job in jenkins.jobs if tag in job.config)
-    removed_jobs = []
 
+    # print jenkins.jobs[0]
+    # pdb.set_trace()
+
+    jenkins_autojobs = (job for job in jenkins.jobs if tag in job.config)
+    managed_jobs = []
+    for job in jenkins_autojobs:
+        scopeName = etree.fromstring(job.config.encode('utf8')).xpath('createdByJenkinsAutojobs/scopeName/text()')
+        if scopeName and scopeName[0] == config['template']:
+            managed_jobs.append(job)
+    # managed_jobs = (job for job in jenkins_autojobs if etree.fromstring(job.config.encode('utf8')).xpath('createdByJenkinsAutojobs/scopeName/text()')[0] == config['template'])
+    removed_jobs = []
+    
     for job in managed_jobs:
         if job.name not in job_names and job.exists():
             removed_jobs.append(job)
